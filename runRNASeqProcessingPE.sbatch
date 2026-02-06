@@ -14,7 +14,8 @@ echo "SLURM Node list     : ${SLURM_JOB_NODELIST}";
 echo "SLURM partition     : ${SLURM_JOB_PARTITION}";
 
 echo "activate conda";
-source activate RNA-seq;
+source $HOME/.bashrc
+conda activate AP
 echo "activated conda";
 
 id=$1
@@ -419,7 +420,6 @@ rm $temp_d/primary.unique.sorted.bam $temp_d/primary.unique.sorted.bam.bai $temp
 rm -rf $temp_d;
 
 echo "done";
-
 
 
 

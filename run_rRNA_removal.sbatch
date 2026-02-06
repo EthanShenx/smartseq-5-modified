@@ -16,7 +16,7 @@ echo "SLURM partition     : ${SLURM_JOB_PARTITION}";
 
 source $HOME/.bashrc
 echo "activate conda";
-conda activate RNA-seq;
+conda activate AP
 echo "activated conda";
 
 id=$1
