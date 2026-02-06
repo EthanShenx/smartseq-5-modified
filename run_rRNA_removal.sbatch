@@ -28,6 +28,9 @@ echo "activated conda";
 if [ -n "${CONDA_PREFIX:-}" ]; then
   export PATH="$CONDA_PREFIX/bin:$PATH"
 fi
+# avoid locale warnings in Picard/R
+export LC_ALL=C
+export LANG=C
 
 # use separate env for UCSC tools to avoid OpenSSL 1.0 conflicts
 ucsc() { conda run -n ucsc10 "$@"; }

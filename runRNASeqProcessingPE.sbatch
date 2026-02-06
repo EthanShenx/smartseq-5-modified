@@ -29,6 +29,9 @@ if [ -n "${CONDA_PREFIX:-}" ]; then
 fi
 # increase Java heap for trimmomatic to avoid OOM
 export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:-"-Xmx8g"}"
+# avoid locale warnings in Picard/R
+export LC_ALL=C
+export LANG=C
 
 # use separate env for UCSC tools to avoid OpenSSL 1.0 conflicts
 ucsc() { conda run -n ucsc10 "$@"; }
