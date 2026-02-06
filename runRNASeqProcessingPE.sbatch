@@ -3,7 +3,6 @@
 #SBATCH -o ~/slurm_jobs/slurm_%j.log
 #SBATCH -e ~/slurm_jobs/slurm_%j.err
 #SBATCH -J RNAprocessing-dump
-#SBATCH -p normal_q
 #SBATCH -c 8
 #SBATCH -t 48:00:00
 #SBATCH --mem=120G

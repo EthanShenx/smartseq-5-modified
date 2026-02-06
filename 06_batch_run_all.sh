@@ -10,6 +10,8 @@ OUTROOT=${OUTROOT:-"$HOME/AP_project/data/smartseq5/output_01"}
 REF_DIR=${REF_DIR:-"$HOME/AP_project/ref/mm10"}
 CORES=${CORES:-32}
 DUPLICATE_PIXEL_DIST=${DUPLICATE_PIXEL_DIST:-2500}
+PARTITION=${PARTITION:-""}
+QOS=${QOS:-""}
 
 ADAP_ILL="${SMARTSEQ_DIR}/adaptors/NexteraPE-PE.fa"
 ADAP_SS2="${SMARTSEQ_DIR}/adaptors/SS2_adaptors_RCs.fa"
@@ -129,7 +131,7 @@ fi
 total=${#sample_ids[@]}
 current=0
 
-echo "Found $total samples. Running sequentially with stop-on-error.";
+echo "Found $total samples. Running sequentially with skip-on-error.";
 
 # =====================
 # Run samples (sequential with progress bar)
@@ -151,9 +153,15 @@ for id in "${sample_ids[@]}"; do
   mkdir -p "$outdir/logs"
 
   # Submit and wait
-  if ! sbatch_out=$(sbatch --wait \
-    -o "$outdir/logs/slurm_%j.out" \
-    -e "$outdir/logs/slurm_%j.err" \
+  sbatch_cmd=(sbatch --wait -o "$outdir/logs/slurm_%j.out" -e "$outdir/logs/slurm_%j.err")
+  if [[ -n "$PARTITION" ]]; then
+    sbatch_cmd+=(-p "$PARTITION")
+  fi
+  if [[ -n "$QOS" ]]; then
+    sbatch_cmd+=(-q "$QOS")
+  fi
+
+  if ! sbatch_out=$("${sbatch_cmd[@]}" \
     "$SMARTSEQ_DIR/runRNASeqProcessingPE.sbatch" \
     "$id" \
     "$outdir" \

@@ -3,8 +3,6 @@
 #SBATCH -o ~/slurm_jobs/slurm_%j.log
 #SBATCH -e ~/slurm_jobs/slurm_%j.err
 #SBATCH -J rRNA_remove
-#SBATCH -p cpu_p
-#SBATCH -q cpu_normal
 #SBATCH -c 4
 #SBATCH -t 48:00:00
 #SBATCH --mem=100G
