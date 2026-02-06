@@ -8,7 +8,7 @@ SMARTSEQ_DIR=${SMARTSEQ_DIR:-"$HOME/AP_project/data/smartseq5/smartseq-5-modifie
 DATA_DIR=${DATA_DIR:-"$HOME/AP_project/data/smartseq5"}
 OUTROOT=${OUTROOT:-"$HOME/AP_project/data/smartseq5/output_01"}
 REF_DIR=${REF_DIR:-"$HOME/AP_project/ref/mm10"}
-CORES=${CORES:-4}
+CORES=${CORES:-32}
 DUPLICATE_PIXEL_DIST=${DUPLICATE_PIXEL_DIST:-2500}
 
 ADAP_ILL="${SMARTSEQ_DIR}/adaptors/NexteraPE-PE.fa"
@@ -21,6 +21,7 @@ STARIDX="${REF_DIR}/star_index"
 # Optional: if you want to run a subset, set SAMPLE_GLOB or SAMPLE_LIST
 SAMPLE_GLOB=${SAMPLE_GLOB:-"${DATA_DIR}/*_1.fastq.gz"}
 SAMPLE_LIST=${SAMPLE_LIST:-""}  # file with one sample id per line (e.g., SRR12345)
+ERROR_LOG=${ERROR_LOG:-"${OUTROOT}/batch_errors.log"}
 
 # =====================
 # Helpers
@@ -38,6 +39,11 @@ progress_bar() {
   bar=${bar// /#}
   space=${space// /-}
   printf "\r[%s%s] %d/%d %s" "$bar" "$space" "$current" "$total" "$label"
+}
+
+log_error() {
+  local msg=$1
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $msg" >> "$ERROR_LOG"
 }
 
 organize_outputs() {
@@ -98,6 +104,7 @@ if [[ ! -d "$STARIDX" ]]; then
 fi
 
 mkdir -p "$OUTROOT"
+echo "Batch run started at $(date)" > "$ERROR_LOG"
 
 # Build sample list
 sample_ids=()
@@ -136,14 +143,15 @@ for id in "${sample_ids[@]}"; do
   f2="$DATA_DIR/${id}_2.fastq.gz"
   if [[ ! -f "$f1" || ! -f "$f2" ]]; then
     echo "ERROR: missing FASTQ pair for $id" >&2
-    exit 1
+    log_error "MISSING_FASTQ $id f1=$f1 f2=$f2"
+    continue
   fi
 
   outdir="$OUTROOT/$id"
   mkdir -p "$outdir/logs"
 
   # Submit and wait
-  sbatch_out=$(sbatch --wait \
+  if ! sbatch_out=$(sbatch --wait \
     -o "$outdir/logs/slurm_%j.out" \
     -e "$outdir/logs/slurm_%j.err" \
     "$SMARTSEQ_DIR/runRNASeqProcessingPE.sbatch" \
@@ -159,21 +167,27 @@ for id in "${sample_ids[@]}"; do
     "$DUPLICATE_PIXEL_DIST" \
     "$FASTA" \
     "$GTF" \
-    "$GTF" )
+    "$GTF" ); then
+    echo "ERROR: sbatch failed for $id" >&2
+    log_error "SBATCH_FAILED $id"
+    continue
+  fi
 
   job_id=$(echo "$sbatch_out" | awk '/Submitted batch job/ {print $4}' | tail -n 1)
   if [[ -z "$job_id" ]]; then
     echo "ERROR: could not parse job id for $id" >&2
     echo "$sbatch_out" >&2
-    exit 1
+    log_error "NO_JOB_ID $id sbatch_out=$(echo "$sbatch_out" | tr '\n' ' ')"
+    continue
   fi
 
   log_file="$outdir/logs/slurm_${job_id}.out"
 
   # Stop immediately if log has failure patterns
   if ! check_errors_in_log "$log_file"; then
-    echo "Stopped due to errors in $id (job $job_id)." >&2
-    exit 1
+    echo "ERROR: errors detected in $id (job $job_id)." >&2
+    log_error "JOB_ERROR $id job=$job_id log=$log_file"
+    continue
   fi
 
   # Organize outputs for this sample
@@ -183,4 +197,4 @@ done
 
 progress_bar "$total" "$total" "done"
 echo
-echo "All samples completed successfully."
+echo "All samples completed. Check $ERROR_LOG for any skipped samples."
