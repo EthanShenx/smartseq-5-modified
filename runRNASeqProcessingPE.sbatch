@@ -30,6 +30,9 @@ fi
 # increase Java heap for trimmomatic to avoid OOM
 export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:-"-Xmx8g"}"
 
+# use separate env for UCSC tools to avoid OpenSSL 1.0 conflicts
+ucsc() { conda run -n ucsc10 "$@"; }
+
 id=$1
 cwd_path=$2
 read1=$3
@@ -171,8 +174,8 @@ scale=$(bc <<< "scale=6;1000000/$n")
 echo "Five_prime_reads_BOTH_strands $n\n" > $cwd_path/Read_numbers.txt
 
 bedtools genomecov -bga -5 -scale $scale -ibam $temp_d/Aligned.Primary.Unique.Read2.sorted.bam > $temp_d/primary.unique.bdg
-bedSort $temp_d/primary.unique.bdg $temp_d/primary.unique.sort.bdg
-bedGraphToBigWig $temp_d/primary.unique.sort.bdg $chrom_sizes $temp_d/primary.unique.bw
+ucsc bedSort $temp_d/primary.unique.bdg $temp_d/primary.unique.sort.bdg
+ucsc bedGraphToBigWig $temp_d/primary.unique.sort.bdg $chrom_sizes $temp_d/primary.unique.bw
 mv $temp_d/primary.unique.bdg $cwd_path/$id.FivePrime_BothStrands.Primary.Unique.Read2.sorted.rpm.bdg
 mv $temp_d/primary.unique.bw $cwd_path/$id.FivePrime_BothStrands.Primary.Unique.Read2.sorted.rpm.bw
 
@@ -188,8 +191,8 @@ scale=$(bc <<< "scale=6;1000000/$n")
 echo "Five_prime_reads_PLUS_strand $n\n" >> $cwd_path/Read_numbers.txt
 
 bedtools genomecov -bga -5 -scale $scale -ibam $temp_d/plus.unique.bam > $temp_d/plus.unique.bdg
-bedSort $temp_d/plus.unique.bdg $temp_d/plus.unique.sort.bdg
-bedGraphToBigWig $temp_d/plus.unique.sort.bdg $chrom_sizes $temp_d/plus.unique.bw
+ucsc bedSort $temp_d/plus.unique.bdg $temp_d/plus.unique.sort.bdg
+ucsc bedGraphToBigWig $temp_d/plus.unique.sort.bdg $chrom_sizes $temp_d/plus.unique.bw
 
 mv $temp_d/plus.unique.bam $cwd_path/$id.FivePrime_PlusStrand.Primary.Unique.Read2.sorted.bam
 mv $temp_d/plus.unique.bam.bai $cwd_path/$id.FivePrime_PlusStrand.Primary.Unique.Read2.sorted.bam.bai
@@ -207,8 +210,8 @@ scale=$(bc <<< "scale=6;1000000/$n")
 echo "Five_prime_reads_MINUS_strand $n\n" >> $cwd_path/Read_numbers.txt
 
 bedtools genomecov -bga -5 -scale $scale -ibam $temp_d/minus.unique.bam > $temp_d/minus.unique.bdg
-bedSort $temp_d/minus.unique.bdg $temp_d/minus.unique.sort.bdg
-bedGraphToBigWig $temp_d/minus.unique.sort.bdg $chrom_sizes $temp_d/minus.unique.bw
+ucsc bedSort $temp_d/minus.unique.bdg $temp_d/minus.unique.sort.bdg
+ucsc bedGraphToBigWig $temp_d/minus.unique.sort.bdg $chrom_sizes $temp_d/minus.unique.bw
 
 mv $temp_d/minus.unique.bam $cwd_path/$id.FivePrime_MinusStrand.Primary.Unique.Read2.sorted.bam
 mv $temp_d/minus.unique.bam.bai $cwd_path/$id.FivePrime_MinusStrand.Primary.Unique.Read2.sorted.bam.bai
@@ -275,8 +278,8 @@ scale=$(bc <<< "scale=6;1000000/$n")
 echo "Internal_Reads_BOTH_strands $n\n" >> $cwd_path/Read_numbers.txt
 
 bedtools genomecov -bga -split -scale $scale -ibam $temp_d/primary.unique.sorted.bam > $temp_d/primary.unique.bdg
-bedSort $temp_d/primary.unique.bdg $temp_d/primary.unique.sort.bdg
-bedGraphToBigWig $temp_d/primary.unique.sort.bdg $chrom_sizes $temp_d/primary.unique.bw
+ucsc bedSort $temp_d/primary.unique.bdg $temp_d/primary.unique.sort.bdg
+ucsc bedGraphToBigWig $temp_d/primary.unique.sort.bdg $chrom_sizes $temp_d/primary.unique.bw
 mv $temp_d/primary.unique.bdg $cwd_path/$id.Else.unique.rpm.bdg
 mv $temp_d/primary.unique.bw $cwd_path/$id.Else.unique.rpm.bw
 
@@ -357,8 +360,8 @@ scale=$(bc <<< "scale=6;1000000/$n")
 echo "All_Reads_BOTH_strands $n\n" >> $cwd_path/Read_numbers.txt
 
 bedtools genomecov -bga -split -scale $scale -ibam $temp_d/primary.unique.sorted.bam > $temp_d/primary.unique.bdg
-bedSort $temp_d/primary.unique.bdg $temp_d/primary.unique.sort.bdg
-bedGraphToBigWig $temp_d/primary.unique.sort.bdg $chrom_sizes $temp_d/primary.unique.bw
+ucsc bedSort $temp_d/primary.unique.bdg $temp_d/primary.unique.sort.bdg
+ucsc bedGraphToBigWig $temp_d/primary.unique.sort.bdg $chrom_sizes $temp_d/primary.unique.bw
 mv $temp_d/primary.unique.bdg $cwd_path/$id.All.unique.rpm.bdg
 mv $temp_d/primary.unique.bw $cwd_path/$id.All.unique.rpm.bw
 
@@ -385,8 +388,8 @@ n=$(samtools view -c $temp_d/all.multimapping.sorted.bam)
 scale=$(bc <<< "scale=6;1000000/$n")
 
 bedtools genomecov -bga -split -scale $scale -ibam $temp_d/all.multimapping.sorted.bam > $temp_d/primary.multimapping.bdg
-bedSort $temp_d/primary.multimapping.bdg $temp_d/primary.multimapping.sort.bdg 
-bedGraphToBigWig $temp_d/primary.multimapping.sort.bdg $chrom_sizes $temp_d/primary.multimapping.bw
+ucsc bedSort $temp_d/primary.multimapping.bdg $temp_d/primary.multimapping.sort.bdg 
+ucsc bedGraphToBigWig $temp_d/primary.multimapping.sort.bdg $chrom_sizes $temp_d/primary.multimapping.bw
 mv $temp_d/primary.multimapping.bdg $cwd_path/$id.All.multimapping.rpm.bdg
 mv $temp_d/primary.multimapping.bw $cwd_path/$id.All.multimapping.rpm.bw
 
@@ -433,4 +436,3 @@ rm $temp_d/primary.unique.sorted.bam $temp_d/primary.unique.sorted.bam.bai $temp
 rm -rf $temp_d;
 
 echo "done";
-

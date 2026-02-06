@@ -29,6 +29,9 @@ if [ -n "${CONDA_PREFIX:-}" ]; then
   export PATH="$CONDA_PREFIX/bin:$PATH"
 fi
 
+# use separate env for UCSC tools to avoid OpenSSL 1.0 conflicts
+ucsc() { conda run -n ucsc10 "$@"; }
+
 id=$1
 cwd_path=$2
 chrom_sizes=$3
@@ -134,8 +137,8 @@ scale=$(bc <<< "scale=6;1000000/$n")
 echo "Five_prime_reads_BOTH_strands $n\n" > $cwd_path/Read_numbers_norRNA.txt
 
 bedtools genomecov -bga -5 -g $chrom_sizes -scale $scale -ibam $temp_d/Aligned.Primary.Unique.Read2.sorted.norRNA.bam > $temp_d/primary.unique.bdg
-bedSort $temp_d/primary.unique.bdg $temp_d/primary.unique.sort.bdg
-bedGraphToBigWig $temp_d/primary.unique.sort.bdg $chrom_sizes $temp_d/primary.unique.bw
+ucsc bedSort $temp_d/primary.unique.bdg $temp_d/primary.unique.sort.bdg
+ucsc bedGraphToBigWig $temp_d/primary.unique.sort.bdg $chrom_sizes $temp_d/primary.unique.bw
 mv $temp_d/primary.unique.bdg $cwd_path/$id.FivePrime_BothStrands.Primary.Unique.Read2.sorted.norRNA.rpm.bdg
 mv $temp_d/primary.unique.bw $cwd_path/$id.FivePrime_BothStrands.Primary.Unique.Read2.sorted.norRNA.rpm.bw
 
@@ -152,8 +155,8 @@ scale=$(bc <<< "scale=6;1000000/$n")
 echo "Five_prime_reads_PLUS_strand $n\n" >> $cwd_path/Read_numbers_norRNA.txt
 
 bedtools genomecov -bga -5 -g $chrom_sizes -scale $scale -ibam $temp_d/plus.unique.bam > $temp_d/plus.unique.bdg
-bedSort $temp_d/plus.unique.bdg $temp_d/plus.unique.sort.bdg
-bedGraphToBigWig $temp_d/plus.unique.sort.bdg $chrom_sizes $temp_d/plus.unique.bw
+ucsc bedSort $temp_d/plus.unique.bdg $temp_d/plus.unique.sort.bdg
+ucsc bedGraphToBigWig $temp_d/plus.unique.sort.bdg $chrom_sizes $temp_d/plus.unique.bw
 
 mv $temp_d/plus.unique.bam $cwd_path/$id.FivePrime_PlusStrand.Primary.Unique.Read2.sorted.norRNA.bam
 mv $temp_d/plus.unique.bam.bai $cwd_path/$id.FivePrime_PlusStrand.Primary.Unique.Read2.sorted.norRNA.bam.bai
@@ -171,8 +174,8 @@ scale=$(bc <<< "scale=6;1000000/$n")
 echo "Five_prime_reads_MINUS_strand $n\n" >> $cwd_path/Read_numbers_norRNA.txt
 
 bedtools genomecov -bga -5 -g $chrom_sizes -scale $scale -ibam $temp_d/minus.unique.bam > $temp_d/minus.unique.bdg
-bedSort $temp_d/minus.unique.bdg $temp_d/minus.unique.sort.bdg
-bedGraphToBigWig $temp_d/minus.unique.sort.bdg $chrom_sizes $temp_d/minus.unique.bw
+ucsc bedSort $temp_d/minus.unique.bdg $temp_d/minus.unique.sort.bdg
+ucsc bedGraphToBigWig $temp_d/minus.unique.sort.bdg $chrom_sizes $temp_d/minus.unique.bw
 
 mv $temp_d/minus.unique.bam $cwd_path/$id.FivePrime_MinusStrand.Primary.Unique.Read2.sorted.norRNA.bam
 mv $temp_d/minus.unique.bam.bai $cwd_path/$id.FivePrime_MinusStrand.Primary.Unique.Read2.sorted.norRNA.bam.bai
@@ -212,8 +215,8 @@ scale=$(bc <<< "scale=6;1000000/$n")
 echo "All_Reads_BOTH_strands $n\n" >> $cwd_path/Read_numbers_norRNA.txt
 
 bedtools genomecov -bga -split -g $chrom_sizes -scale $scale -ibam $temp_d/all.primary.unique.sorted.norRNA.bam > $temp_d/primary.unique.bdg
-bedSort $temp_d/primary.unique.bdg $temp_d/primary.unique.sort.bdg
-bedGraphToBigWig $temp_d/primary.unique.sort.bdg $chrom_sizes $temp_d/primary.unique.bw
+ucsc bedSort $temp_d/primary.unique.bdg $temp_d/primary.unique.sort.bdg
+ucsc bedGraphToBigWig $temp_d/primary.unique.sort.bdg $chrom_sizes $temp_d/primary.unique.bw
 
 
 echo "=========================================================="
@@ -248,8 +251,8 @@ echo "Found $n Total Reads in BOTH strands"
 scale=$(bc <<< "scale=6;1000000/$n")
 
 bedtools genomecov -bga -split -g $chrom_sizes -scale $scale -ibam $temp_d/else.primary.unique.sorted.norRNA.bam > $temp_d/primary.unique.bdg
-bedSort $temp_d/primary.unique.bdg $temp_d/primary.unique.sort.bdg
-bedGraphToBigWig $temp_d/primary.unique.sort.bdg $chrom_sizes $temp_d/primary.unique.bw
+ucsc bedSort $temp_d/primary.unique.bdg $temp_d/primary.unique.sort.bdg
+ucsc bedGraphToBigWig $temp_d/primary.unique.sort.bdg $chrom_sizes $temp_d/primary.unique.bw
 mv $temp_d/primary.unique.bdg $cwd_path/$id.Else.unique.norRNA.rpm.bdg
 mv $temp_d/primary.unique.bw $cwd_path/$id.Else.unique.norRNA.rpm.bw
 
