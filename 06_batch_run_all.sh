@@ -10,8 +10,9 @@ OUTROOT=${OUTROOT:-"$HOME/AP_project/data/smartseq5/output_01"}
 REF_DIR=${REF_DIR:-"$HOME/AP_project/ref/mm10"}
 CORES=${CORES:-32}
 DUPLICATE_PIXEL_DIST=${DUPLICATE_PIXEL_DIST:-2500}
-PARTITION=${PARTITION:-""}
+PARTITION=${PARTITION:-"all_gpu"}
 QOS=${QOS:-""}
+GRES=${GRES:-""}   # e.g., "gpu:1" if your GPU partition requires it
 
 ADAP_ILL="${SMARTSEQ_DIR}/adaptors/NexteraPE-PE.fa"
 ADAP_SS2="${SMARTSEQ_DIR}/adaptors/SS2_adaptors_RCs.fa"
@@ -131,7 +132,8 @@ fi
 total=${#sample_ids[@]}
 current=0
 
-echo "Found $total samples. Running sequentially with skip-on-error.";
+echo "Found $total samples. Running sequentially with skip-on-error."
+echo "Using partition: ${PARTITION:-<none>}  qos: ${QOS:-<none>}  gres: ${GRES:-<none>}"
 
 # =====================
 # Run samples (sequential with progress bar)
@@ -159,6 +161,9 @@ for id in "${sample_ids[@]}"; do
   fi
   if [[ -n "$QOS" ]]; then
     sbatch_cmd+=(-q "$QOS")
+  fi
+  if [[ -n "$GRES" ]]; then
+    sbatch_cmd+=(--gres "$GRES")
   fi
 
   if ! sbatch_out=$("${sbatch_cmd[@]}" \
