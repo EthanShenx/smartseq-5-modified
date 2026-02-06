@@ -99,6 +99,6 @@ for i in `seq 0 $(($usable_cores-1))`; do
   cat "${list_three_files[$i]}_2.fastq" | pigz -p $cores >> "${final_output_three}_2.fastq.gz"
   cat "${list_else_files[$i]}_1.fastq" | pigz -p $cores >> "${final_output_else}_1.fastq.gz"
   cat "${list_else_files[$i]}_2.fastq" | pigz -p $cores >> "${final_output_else}_2.fastq.gz"
+done;
 
 rm -rf $temp_d
-done;

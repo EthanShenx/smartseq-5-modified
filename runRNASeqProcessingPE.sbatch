@@ -27,6 +27,8 @@ echo "activated conda";
 if [ -n "${CONDA_PREFIX:-}" ]; then
   export PATH="$CONDA_PREFIX/bin:$PATH"
 fi
+# increase Java heap for trimmomatic to avoid OOM
+export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:-"-Xmx8g"}"
 
 id=$1
 cwd_path=$2
@@ -431,5 +433,4 @@ rm $temp_d/primary.unique.sorted.bam $temp_d/primary.unique.sorted.bam.bai $temp
 rm -rf $temp_d;
 
 echo "done";
-
 
