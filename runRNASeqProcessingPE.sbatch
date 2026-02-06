@@ -402,19 +402,19 @@ samtools index $temp_d/$id.bam
 
 echo "=========================================================="
 echo "Fixing mates for Picard... [ $(date) ]"
-picard FixMateInformation QUIET=true -I $temp_d/$id.bam
+picard FixMateInformation QUIET=true I=$temp_d/$id.bam
 
 echo "=========================================================="
 echo "Counting duplicates, they will not be removed...  [ $(date) ]"
-picard MarkDuplicates QUIET=true -I $temp_d/$id.bam -O $temp_d/primary.unique.sorted.counted.bam -M $cwd_path/QC_Picard_duplicates.txt -REMOVE_DUPLICATES false -OPTICAL_DUPLICATE_PIXEL_DISTANCE $duplicate_pixel_dist
+picard MarkDuplicates QUIET=true I=$temp_d/$id.bam O=$temp_d/primary.unique.sorted.counted.bam M=$cwd_path/QC_Picard_duplicates.txt REMOVE_DUPLICATES=false OPTICAL_DUPLICATE_PIXEL_DISTANCE=$duplicate_pixel_dist
 
 echo "=========================================================="
 echo "Counting GC bias...  [ $(date) ]"
-picard CollectGcBiasMetrics QUIET=true -I $temp_d/$id.bam -O $cwd_path/QC_Picard_GCbias_metrics.txt -S $cwd_path/QC_Picard_GCbias_summary.txt -CHART_OUTPUT $cwd_path/QC_Picard_GCchart.pdf -R $ref_genome
+picard CollectGcBiasMetrics QUIET=true I=$temp_d/$id.bam O=$cwd_path/QC_Picard_GCbias_metrics.txt S=$cwd_path/QC_Picard_GCbias_summary.txt CHART_OUTPUT=$cwd_path/QC_Picard_GCchart.pdf R=$ref_genome
 
 echo "=========================================================="
 echo "Calculating insert sizes... [ $(date) ]"
-picard CollectInsertSizeMetrics QUIET=true -I $temp_d/$id.bam -O $cwd_path/QC_Picard_insert_metrics.txt -H $cwd_path/QC_Picard_insert_chart.pdf
+picard CollectInsertSizeMetrics QUIET=true I=$temp_d/$id.bam O=$cwd_path/QC_Picard_insert_metrics.txt H=$cwd_path/QC_Picard_insert_chart.pdf
 
 
 echo "=========================================================="
@@ -431,6 +431,5 @@ rm $temp_d/primary.unique.sorted.bam $temp_d/primary.unique.sorted.bam.bai $temp
 rm -rf $temp_d;
 
 echo "done";
-
 
 
