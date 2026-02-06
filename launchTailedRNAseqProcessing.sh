@@ -8,6 +8,9 @@ final_output_three=$7
 final_output_else=$8
 cores=$9
 
+# resolve script directory so relative calls work from any cwd
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+
 #note that fastqs should already be in a temp folder
 temp_d=$(mktemp -d --tmpdir=$HOME/tmp)
 echo "temporary files go to $temp_d";
@@ -64,7 +67,7 @@ for i in `seq 0 $(($usable_cores-1))`; do
 
   echo "Values are n = $n x = $x cores = $usable_cores initial = $initial final = $last"
 
-  python processTailedRNAseq.py $temp1 $temp2 $adaptor_root $adaptor_five $adaptor_three $out_five $out_three $out_else &
+  python "$SCRIPT_DIR/processTailedRNAseq.py" $temp1 $temp2 $adaptor_root $adaptor_five $adaptor_three $out_five $out_three $out_else &
 
   pids="$pids $!"
 done

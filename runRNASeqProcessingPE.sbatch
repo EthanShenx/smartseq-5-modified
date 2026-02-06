@@ -14,9 +14,19 @@ echo "SLURM Node list     : ${SLURM_JOB_NODELIST}";
 echo "SLURM partition     : ${SLURM_JOB_PARTITION}";
 
 echo "activate conda";
-source $HOME/.bashrc
+if [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
+  source "$HOME/miniconda3/etc/profile.d/conda.sh"
+elif [ -f "$HOME/anaconda3/etc/profile.d/conda.sh" ]; then
+  source "$HOME/anaconda3/etc/profile.d/conda.sh"
+else
+  echo "ERROR: conda.sh not found under \$HOME/miniconda3 or \$HOME/anaconda3" >&2
+  exit 1
+fi
 conda activate AP
 echo "activated conda";
+if [ -n "${CONDA_PREFIX:-}" ]; then
+  export PATH="$CONDA_PREFIX/bin:$PATH"
+fi
 
 id=$1
 cwd_path=$2
@@ -65,7 +75,8 @@ echo "Trimming adaptors and splitting based on tags... [ $(date) ]"
 adaptor_root="AAGCAGTGGTATCAACGCAGAGTAC"
 adaptor_five="AAGCAGTGGTATCAACGCAGAGTACATGGG"
 adaptor_three="AAGCAGTGGTATCAACGCAGAGTACTTTTT"
-launchTailedRNAseqProcessing.sh $temp_d/$id.clean_1P.fastq.gz $temp_d/$id.clean_2P.fastq.gz $adaptor_root $adaptor_five $adaptor_three $temp_d/$id\_five $temp_d/$id\_three $temp_d/$id\_else $cores
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+bash "$SCRIPT_DIR/launchTailedRNAseqProcessing.sh" $temp_d/$id.clean_1P.fastq.gz $temp_d/$id.clean_2P.fastq.gz $adaptor_root $adaptor_five $adaptor_three $temp_d/$id\_five $temp_d/$id\_three $temp_d/$id\_else $cores
 
 echo "=========================================================="
 echo "Copying split files... [ $(date) ]"
@@ -391,19 +402,19 @@ samtools index $temp_d/$id.bam
 
 echo "=========================================================="
 echo "Fixing mates for Picard... [ $(date) ]"
-picard FixMateInformation --QUIET true -I $temp_d/$id.bam
+picard FixMateInformation QUIET=true -I $temp_d/$id.bam
 
 echo "=========================================================="
 echo "Counting duplicates, they will not be removed...  [ $(date) ]"
-picard MarkDuplicates --QUIET true -I $temp_d/$id.bam -O $temp_d/primary.unique.sorted.counted.bam -M $cwd_path/QC_Picard_duplicates.txt -REMOVE_DUPLICATES false -OPTICAL_DUPLICATE_PIXEL_DISTANCE $duplicate_pixel_dist
+picard MarkDuplicates QUIET=true -I $temp_d/$id.bam -O $temp_d/primary.unique.sorted.counted.bam -M $cwd_path/QC_Picard_duplicates.txt -REMOVE_DUPLICATES false -OPTICAL_DUPLICATE_PIXEL_DISTANCE $duplicate_pixel_dist
 
 echo "=========================================================="
 echo "Counting GC bias...  [ $(date) ]"
-picard CollectGcBiasMetrics --QUIET true -I $temp_d/$id.bam -O $cwd_path/QC_Picard_GCbias_metrics.txt -S $cwd_path/QC_Picard_GCbias_summary.txt -CHART_OUTPUT $cwd_path/QC_Picard_GCchart.pdf -R $ref_genome
+picard CollectGcBiasMetrics QUIET=true -I $temp_d/$id.bam -O $cwd_path/QC_Picard_GCbias_metrics.txt -S $cwd_path/QC_Picard_GCbias_summary.txt -CHART_OUTPUT $cwd_path/QC_Picard_GCchart.pdf -R $ref_genome
 
 echo "=========================================================="
 echo "Calculating insert sizes... [ $(date) ]"
-picard CollectInsertSizeMetrics --QUIET true -I $temp_d/$id.bam -O $cwd_path/QC_Picard_insert_metrics.txt -H $cwd_path/QC_Picard_insert_chart.pdf
+picard CollectInsertSizeMetrics QUIET=true -I $temp_d/$id.bam -O $cwd_path/QC_Picard_insert_metrics.txt -H $cwd_path/QC_Picard_insert_chart.pdf
 
 
 echo "=========================================================="
@@ -420,8 +431,6 @@ rm $temp_d/primary.unique.sorted.bam $temp_d/primary.unique.sorted.bam.bai $temp
 rm -rf $temp_d;
 
 echo "done";
-
-
 
 
 

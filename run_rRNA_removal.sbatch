@@ -14,10 +14,20 @@ echo "SLURM Job name      : ${SLURM_JOB_NAME}";
 echo "SLURM Node list     : ${SLURM_JOB_NODELIST}";
 echo "SLURM partition     : ${SLURM_JOB_PARTITION}";
 
-source $HOME/.bashrc
 echo "activate conda";
+if [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
+  source "$HOME/miniconda3/etc/profile.d/conda.sh"
+elif [ -f "$HOME/anaconda3/etc/profile.d/conda.sh" ]; then
+  source "$HOME/anaconda3/etc/profile.d/conda.sh"
+else
+  echo "ERROR: conda.sh not found under \$HOME/miniconda3 or \$HOME/anaconda3" >&2
+  exit 1
+fi
 conda activate AP
 echo "activated conda";
+if [ -n "${CONDA_PREFIX:-}" ]; then
+  export PATH="$CONDA_PREFIX/bin:$PATH"
+fi
 
 id=$1
 cwd_path=$2
@@ -74,14 +84,14 @@ echo "Removing rRNA mapping reads from 5' data - both strands... [ $(date) ]"
 #5' multimapping
 bedtools intersect -a $temp_d/Aligned.Primary.Multimapping.BothReads.sorted.bam -b $temp_d/rRNA_coords.bed -sorted -g $chrom_sizes > $temp_d/rRNAreads.bam
 samtools view $temp_d/rRNAreads.bam | awk '{print $1}' > $temp_d/filter.txt
-picard FilterSamReads --QUIET true -I $temp_d/Aligned.Primary.Multimapping.BothReads.sorted.bam -O $temp_d/Aligned.Primary.Multimapping.BothReads.sorted.norRNA.bam --READ_LIST_FILE $temp_d/filter.txt --FILTER excludeReadList
+picard FilterSamReads QUIET=true -I $temp_d/Aligned.Primary.Multimapping.BothReads.sorted.bam -O $temp_d/Aligned.Primary.Multimapping.BothReads.sorted.norRNA.bam --READ_LIST_FILE $temp_d/filter.txt --FILTER excludeReadList
 samtools index $temp_d/Aligned.Primary.Multimapping.BothReads.sorted.norRNA.bam
 
 
 #5' unique
 bedtools intersect -a $temp_d/Aligned.Primary.Unique.BothReads.sorted.bam -b $temp_d/rRNA_coords.bed -sorted -g $chrom_sizes > $temp_d/rRNAreads.bam
 samtools view $temp_d/rRNAreads.bam | awk '{print $1}' > $temp_d/filter.txt
-picard FilterSamReads --QUIET -I $temp_d/Aligned.Primary.Unique.BothReads.sorted.bam -O $temp_d/Aligned.Primary.Unique.BothReads.sorted.norRNA.bam --READ_LIST_FILE $temp_d/filter.txt --FILTER excludeReadList
+picard FilterSamReads QUIET=true -I $temp_d/Aligned.Primary.Unique.BothReads.sorted.bam -O $temp_d/Aligned.Primary.Unique.BothReads.sorted.norRNA.bam --READ_LIST_FILE $temp_d/filter.txt --FILTER excludeReadList
 samtools index $temp_d/Aligned.Primary.Unique.BothReads.sorted.norRNA.bam
 
 cp $temp_d/Aligned.Primary.Multimapping.BothReads.sorted.norRNA.bam $cwd_path/$id.FivePrime_BothStrands.Primary.Multimapping.BothReads.sorted.norRNA.bam
@@ -97,14 +107,14 @@ echo "Removing rRNA mapping reads from 5' data... [ $(date) ]"
 #5' multimapping
 bedtools intersect -a $temp_d/Aligned.Primary.Multimapping.Read2.sorted.bam -b $temp_d/rRNA_coords.bed -sorted -g $chrom_sizes > $temp_d/rRNAreads.bam
 samtools view $temp_d/rRNAreads.bam | awk '{print $1}' > $temp_d/filter.txt
-picard FilterSamReads --QUIET -I $temp_d/Aligned.Primary.Multimapping.Read2.sorted.bam --O $temp_d/Aligned.Primary.Multimapping.Read2.sorted.norRNA.bam --READ_LIST_FILE $temp_d/filter.txt --FILTER excludeReadList
+picard FilterSamReads QUIET=true -I $temp_d/Aligned.Primary.Multimapping.Read2.sorted.bam -O $temp_d/Aligned.Primary.Multimapping.Read2.sorted.norRNA.bam --READ_LIST_FILE $temp_d/filter.txt --FILTER excludeReadList
 samtools index $temp_d/Aligned.Primary.Multimapping.Read2.sorted.norRNA.bam
 
 
 #5' unique
 bedtools intersect -a $temp_d/Aligned.Primary.Unique.Read2.sorted.bam -b $temp_d/rRNA_coords.bed -sorted -g $chrom_sizes > $temp_d/rRNAreads.bam
 samtools view $temp_d/rRNAreads.bam | awk '{print $1}' > $temp_d/filter.txt
-picard FilterSamReads --QUIET -I $temp_d/Aligned.Primary.Unique.Read2.sorted.bam -O $temp_d/Aligned.Primary.Unique.Read2.sorted.norRNA.bam --READ_LIST_FILE $temp_d/filter.txt --FILTER excludeReadList
+picard FilterSamReads QUIET=true -I $temp_d/Aligned.Primary.Unique.Read2.sorted.bam -O $temp_d/Aligned.Primary.Unique.Read2.sorted.norRNA.bam --READ_LIST_FILE $temp_d/filter.txt --FILTER excludeReadList
 samtools index $temp_d/Aligned.Primary.Unique.Read2.sorted.norRNA.bam
 
 cp $temp_d/Aligned.Primary.Multimapping.Read2.sorted.norRNA.bam $cwd_path/$id.FivePrime_BothStrands.Primary.Multimapping.Read2.sorted.norRNA.bam
@@ -176,13 +186,13 @@ echo "Removing rRNA mapping reads from ALL data... [ $(date) ]"
 #all multimapping
 bedtools intersect -a $temp_d/all.all.multimapping.sorted.bam -b $temp_d/rRNA_coords.bed -sorted -g $chrom_sizes > $temp_d/rRNAreads.bam
 samtools view $temp_d/rRNAreads.bam | awk '{print $1}' > $temp_d/filter.txt
-picard FilterSamReads --QUIET -I $temp_d/all.all.multimapping.sorted.bam -O $temp_d/all.all.multimapping.sorted.norRNA.bam --READ_LIST_FILE $temp_d/filter.txt --FILTER excludeReadList
+picard FilterSamReads QUIET=true -I $temp_d/all.all.multimapping.sorted.bam -O $temp_d/all.all.multimapping.sorted.norRNA.bam --READ_LIST_FILE $temp_d/filter.txt --FILTER excludeReadList
 samtools index $temp_d/all.all.multimapping.sorted.norRNA.bam
 
 #all unique
 bedtools intersect -a $temp_d/all.primary.unique.sorted.bam -b $temp_d/rRNA_coords.bed -sorted -g $chrom_sizes > $temp_d/rRNAreads.bam
 samtools view $temp_d/rRNAreads.bam | awk '{print $1}' > $temp_d/filter.txt
-picard FilterSamReads --QUIET -I $temp_d/all.primary.unique.sorted.bam -O $temp_d/all.primary.unique.sorted.norRNA.bam --READ_LIST_FILE $temp_d/filter.txt --FILTER excludeReadList
+picard FilterSamReads QUIET=true -I $temp_d/all.primary.unique.sorted.bam -O $temp_d/all.primary.unique.sorted.norRNA.bam --READ_LIST_FILE $temp_d/filter.txt --FILTER excludeReadList
 samtools index $temp_d/all.primary.unique.sorted.norRNA.bam
 
 cp $temp_d/all.all.multimapping.sorted.norRNA.bam $cwd_path/$id.All.all.multimapping.sorted.norRNA.bam
