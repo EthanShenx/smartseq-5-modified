@@ -43,6 +43,73 @@ log_error() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $msg" >> "$ERROR_LOG"
 }
 
+check_errors_in_log() {
+  local logfile=$1
+  if [[ ! -f "$logfile" ]]; then
+    echo "ERROR: log file not found: $logfile" >&2
+    return 1
+  fi
+
+  # Patterns that indicate real failures (locale warnings suppressed in scripts)
+  local pattern='ERROR!!|FATAL|Fatal|Exception|Traceback|OutOfMemoryError|Segmentation fault|command not found|No such file or directory|EXITING:|ERROR: Invalid|Killed'
+  if grep -E "$pattern" "$logfile" >/dev/null 2>&1; then
+    echo "ERROR: failure detected in log: $logfile" >&2
+    grep -E "$pattern" "$logfile" | head -n 20 >&2
+    return 1
+  fi
+  return 0
+}
+
+find_output_file() {
+  local outdir=$1
+  local relpath=$2
+  if [[ -f "$outdir/$relpath" ]]; then
+    echo "$outdir/$relpath"
+    return 0
+  fi
+  if [[ -f "$outdir/bam/$relpath" ]]; then
+    echo "$outdir/bam/$relpath"
+    return 0
+  fi
+  if [[ -f "$outdir/bw/$relpath" ]]; then
+    echo "$outdir/bw/$relpath"
+    return 0
+  fi
+  if [[ -f "$outdir/bdg/$relpath" ]]; then
+    echo "$outdir/bdg/$relpath"
+    return 0
+  fi
+  return 1
+}
+
+check_expected_outputs() {
+  local outdir=$1
+  local id=$2
+  local missing=0
+  local expected=(
+    "$id.FivePrime_BothStrands.Primary.Unique.Read2.sorted.norRNA.bam"
+    "$id.FivePrime_BothStrands.Primary.Unique.Read2.sorted.norRNA.bam.bai"
+    "$id.FivePrime_PlusStrand.Primary.Unique.Read2.sorted.norRNA.rpm.bw"
+    "$id.FivePrime_MinusStrand.Primary.Unique.Read2.sorted.norRNA.rpm.bw"
+    "$id.All.unique.sorted.norRNA.bam"
+    "$id.All.unique.sorted.norRNA.bam.bai"
+    "$id.All.all.multimapping.sorted.norRNA.bam"
+    "$id.All.all.multimapping.sorted.norRNA.bam.bai"
+  )
+
+  for f in "${expected[@]}"; do
+    if ! find_output_file "$outdir" "$f" >/dev/null 2>&1; then
+      echo "Missing expected output: $outdir/$f" >&2
+      missing=$((missing + 1))
+    fi
+  done
+
+  if [[ $missing -gt 0 ]]; then
+    return 1
+  fi
+  return 0
+}
+
 organize_outputs() {
   local outdir=$1
   mkdir -p "$outdir"/{logs,fastqc,qc,bam,bw,bdg,counts,fastq,other}
@@ -175,8 +242,20 @@ for id in "${sample_ids[@]}"; do
     continue
   fi
 
+  log_file="$outdir/logs/slurm_${job_id}.out"
+  if ! check_errors_in_log "$log_file"; then
+    log_error "JOB_ERROR $id job=$job_id log=$log_file"
+    continue
+  fi
+
   # Organize newly generated outputs
   organize_outputs "$outdir"
+
+  # Verify expected outputs exist
+  if ! check_expected_outputs "$outdir" "$id"; then
+    log_error "MISSING_OUTPUTS $id outdir=$outdir"
+    continue
+  fi
 
 done
 
