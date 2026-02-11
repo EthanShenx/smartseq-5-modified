@@ -40,6 +40,12 @@ cores=$4
 gtf_file=$5
 rRNA=$6
 
+# Allow BAMs to be stored in a subdir (e.g., organized outputs)
+BAM_DIR="${BAM_DIR:-$cwd_path}"
+if [ -d "$cwd_path/bam" ]; then
+  BAM_DIR="$cwd_path/bam"
+fi
+
 echo "working on $id"
 mkdir -p $cwd_path
 cd $cwd_path
@@ -55,32 +61,32 @@ echo "=========================================================="
 echo "Copying bam files... [ $(date) ]"
 
 #5 Prime
-cp $cwd_path/$id.FivePrime_BothStrands.Primary.Multimapping.Read2.sorted.bam $temp_d/Aligned.Primary.Multimapping.Read2.sorted.bam
-cp $cwd_path/$id.FivePrime_BothStrands.Primary.Multimapping.Read2.sorted.bam.bai $temp_d/Aligned.Primary.Multimapping.Read2.sorted.bam.bai
+cp $BAM_DIR/$id.FivePrime_BothStrands.Primary.Multimapping.Read2.sorted.bam $temp_d/Aligned.Primary.Multimapping.Read2.sorted.bam
+cp $BAM_DIR/$id.FivePrime_BothStrands.Primary.Multimapping.Read2.sorted.bam.bai $temp_d/Aligned.Primary.Multimapping.Read2.sorted.bam.bai
 
-cp $cwd_path/$id.FivePrime_BothStrands.Primary.Unique.Read2.sorted.bam $temp_d/Aligned.Primary.Unique.Read2.sorted.bam
-cp $cwd_path/$id.FivePrime_BothStrands.Primary.Unique.Read2.sorted.bam.bai $temp_d/Aligned.Primary.Unique.Read2.sorted.bam.bai
+cp $BAM_DIR/$id.FivePrime_BothStrands.Primary.Unique.Read2.sorted.bam $temp_d/Aligned.Primary.Unique.Read2.sorted.bam
+cp $BAM_DIR/$id.FivePrime_BothStrands.Primary.Unique.Read2.sorted.bam.bai $temp_d/Aligned.Primary.Unique.Read2.sorted.bam.bai
 
 #else
-cp $cwd_path/$id.Else.unique.sorted.bam $temp_d/else.primary.unique.sorted.bam
-cp $cwd_path/$id.Else.unique.sorted.bam.bai $temp_d/else.primary.unique.sorted.bam.bai
+cp $BAM_DIR/$id.Else.unique.sorted.bam $temp_d/else.primary.unique.sorted.bam
+cp $BAM_DIR/$id.Else.unique.sorted.bam.bai $temp_d/else.primary.unique.sorted.bam.bai
 
-cp $cwd_path/$id.Else.all.multimapping.sorted.bam $temp_d/else.all.multimapping.sorted.bam
-cp $cwd_path/$id.Else.all.multimapping.sorted.bam.bai $temp_d/else.all.multimapping.sorted.bam.bai
+cp $BAM_DIR/$id.Else.all.multimapping.sorted.bam $temp_d/else.all.multimapping.sorted.bam
+cp $BAM_DIR/$id.Else.all.multimapping.sorted.bam.bai $temp_d/else.all.multimapping.sorted.bam.bai
 
 #all
-cp $cwd_path/$id.All.unique.sorted.bam $temp_d/all.primary.unique.sorted.bam
-cp $cwd_path/$id.All.unique.sorted.bam.bai $temp_d/all.primary.unique.sorted.bam.bai
+cp $BAM_DIR/$id.All.unique.sorted.bam $temp_d/all.primary.unique.sorted.bam
+cp $BAM_DIR/$id.All.unique.sorted.bam.bai $temp_d/all.primary.unique.sorted.bam.bai
 
-cp $cwd_path/$id.All.all.multimapping.sorted.bam $temp_d/all.all.multimapping.sorted.bam
-cp $cwd_path/$id.All.all.multimapping.sorted.bam.bai $temp_d/all.all.multimapping.sorted.bam.bai
+cp $BAM_DIR/$id.All.all.multimapping.sorted.bam $temp_d/all.all.multimapping.sorted.bam
+cp $BAM_DIR/$id.All.all.multimapping.sorted.bam.bai $temp_d/all.all.multimapping.sorted.bam.bai
 
 #5 Prime - both strands
-cp $cwd_path/$id.FivePrime_BothStrands.Primary.Multimapping.BothStrands.sorted.bam $temp_d/Aligned.Primary.Multimapping.BothReads.sorted.bam
-cp $cwd_path/$id.FivePrime_BothStrands.Primary.Multimapping.BothStrands.sorted.bam.bai $temp_d/Aligned.Primary.Multimapping.BothReads.sorted.bam.bai
+cp $BAM_DIR/$id.FivePrime_BothStrands.Primary.Multimapping.BothStrands.sorted.bam $temp_d/Aligned.Primary.Multimapping.BothReads.sorted.bam
+cp $BAM_DIR/$id.FivePrime_BothStrands.Primary.Multimapping.BothStrands.sorted.bam.bai $temp_d/Aligned.Primary.Multimapping.BothReads.sorted.bam.bai
 
-cp $cwd_path/$id.FivePrime_BothStrands.Primary.Unique.BothStrands.sorted.bam $temp_d/Aligned.Primary.Unique.BothReads.sorted.bam
-cp $cwd_path/$id.FivePrime_BothStrands.Primary.Unique.BothStrands.sorted.bam.bai $temp_d/Aligned.Primary.Unique.BothReads.sorted.bam.bai
+cp $BAM_DIR/$id.FivePrime_BothStrands.Primary.Unique.BothStrands.sorted.bam $temp_d/Aligned.Primary.Unique.BothReads.sorted.bam
+cp $BAM_DIR/$id.FivePrime_BothStrands.Primary.Unique.BothStrands.sorted.bam.bai $temp_d/Aligned.Primary.Unique.BothReads.sorted.bam.bai
 
 
 echo "=========================================================="
